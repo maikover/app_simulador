@@ -111,15 +111,19 @@
         <form id="simulador-form">
             <div class="form-group">
                 <label for="tasa">Tasa E.A. (%):</label>
-                <input type="number" id="tasa" name="tasa" step="0.01" value="27.8">
+                <input type="number" id="tasa" name="tasa" step="0.01" placeholder="Ej: 27.8" oninput="calcularTasaMV()">
             </div>
             <div class="form-group">
-                <label for="cuotas">Número de Cuotas:</label>
-                <input type="number" id="cuotas" name="cuotas" value="10">
+                <label for="tasaMV">Tasa M.V. (Mensual Vencido):</label>
+                <input type="text" id="tasaMV" name="tasaMV" readonly>
+            </div>
+            <div class="form-group">
+                <label for="cuotas">Número de Cuotas (Máximo 60):</label>
+                <input type="number" id="cuotas" name="cuotas" max="60" placeholder="Ej: 10">
             </div>
             <div class="form-group">
                 <label for="valor">Valor de la Transacción (Pesos):</label>
-                <input type="number" id="valor" name="valor" value="50000">
+                <input type="number" id="valor" name="valor" placeholder="Ej: 50000">
             </div>
             <div class="form-group">
                 <label for="fechaTransaccion">Fecha de Transacción:</label>
@@ -168,6 +172,17 @@
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
+        // Función para calcular la Tasa M.V. a partir de la Tasa E.A. y redondearla a 2 decimales
+        function calcularTasaMV() {
+            const tasaEA = parseFloat(document.getElementById("tasa").value);
+            if (!isNaN(tasaEA)) {
+                const tasaMV = Math.pow((1 + tasaEA / 100), 1 / 12) - 1;
+                document.getElementById("tasaMV").value = (tasaMV * 100).toFixed(2) + ' %'; // Redondear a 2 decimales
+            } else {
+                document.getElementById("tasaMV").value = '';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             flatpickr("#fechaCorte", {
                 dateFormat: "Y-m-d",
@@ -276,7 +291,11 @@
                 const cuotaMensual = abonoCapital + interesesTotales;
 
                 saldoFinal = saldoInicial - abonoCapital;
+
+                // Calcular correctamente la fecha de pago para las cuotas siguientes
+                fechaPago = new Date(fechaPago);
                 fechaPago.setMonth(fechaPago.getMonth() + 1);
+                fechaPago.setDate(fechaPago.getDate() + 1); // Ajuste para evitar el desfase
 
                 row = `
                     <tr>
