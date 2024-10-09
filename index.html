@@ -92,6 +92,17 @@
         table tbody tr:nth-child(odd) {
             background-color: #f1f1f1;
         }
+
+        .description {
+            margin-top: 40px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .description h2, .description p {
+            color: #d9534f;
+        }
     </style>
 </head>
 <body>
@@ -141,6 +152,17 @@
                 <!-- Resultados se llenarán aquí -->
             </tbody>
         </table>
+
+        <div class="description">
+            <h2>Simulador de Tarjeta de Crédito - Davivienda</h2>
+            <h3>Objetivo</h3>
+            <p>Este simulador fue creado para agilizar el proceso de simulación de intereses de tarjetas de crédito durante las consultas del Call Center de Davivienda. Permite a los asesores generar cálculos rápidos y precisos de cuotas e intereses, proporcionando una mejor experiencia al cliente.</p>
+
+            <h3>Funcionamiento</h3>
+            <p>El simulador toma como base la tasa efectiva anual (E.A.), el número de cuotas, y el valor de la transacción para calcular los intereses que el cliente debe pagar en cada cuota. El sistema también gestiona las fechas clave como la fecha de transacción, la fecha de corte (solo permite seleccionar viernes o penúltimo día del mes) y la fecha de pago, que se genera automáticamente 25 días después de la fecha de corte. Los cálculos incluyen el reparto de intereses y el abono a capital, mostrando claramente el saldo y las cuotas mes a mes.</p>
+
+            <p><strong>Desarrollado por Michael Martinez.</strong></p>
+        </div>
     </div>
 
     <!-- Flatpickr JS -->
