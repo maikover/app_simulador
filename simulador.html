@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Tarjeta de Crédito</title>
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            border-radius: 10px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #d9534f; /* Rojo */
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1 1 48%;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 1rem;
+            color: #d9534f;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 1rem;
+            border: 2px solid #d9534f; /* Borde rojo */
+            border-radius: 10px; /* Bordes redondeados */
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #d9534f; /* Rojo */
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        button:hover {
+            background-color: #c9302c; /* Rojo oscuro */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        table th {
+            background-color: #d9534f; /* Rojo */
+            color: white;
+        }
+
+        table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulador de Tarjeta de Crédito</h1>
+        <form id="simulador-form">
+            <div class="form-group">
+                <label for="tasa">Tasa E.A. (%):</label>
+                <input type="number" id="tasa" name="tasa" step="0.01" value="27.8">
+            </div>
+            <div class="form-group">
+                <label for="cuotas">Número de Cuotas:</label>
+                <input type="number" id="cuotas" name="cuotas" value="10">
+            </div>
+            <div class="form-group">
+                <label for="valor">Valor de la Transacción (Pesos):</label>
+                <input type="number" id="valor" name="valor" value="50000">
+            </div>
+            <div class="form-group">
+                <label for="fechaTransaccion">Fecha de Transacción:</label>
+                <input type="date" id="fechaTransaccion" name="fechaTransaccion" onchange="actualizarMesCorte()">
+            </div>
+            <div class="form-group">
+                <label for="fechaCorte">Fecha de Corte (Solo Viernes o Penúltimo Día del Mes):</label>
+                <input type="text" id="fechaCorte" name="fechaCorte">
+            </div>
+            <div class="form-group">
+                <label for="fechaPago">Próxima Fecha de Pago:</label>
+                <input type="text" id="fechaPago" name="fechaPago" readonly>
+            </div>
+            <button type="button" onclick="calcularSimulacion()">Simular</button>
+        </form>
+
+        <h2>Resultados</h2>
+        <table id="resultado">
+            <thead>
+                <tr>
+                    <th>Período</th>
+                    <th>Saldo Inicial</th>
+                    <th>Intereses</th>
+                    <th>Cuota Total</th>
+                    <th>Saldo Final</th>
+                    <th>Fecha de Pago</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Resultados se llenarán aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            flatpickr("#fechaCorte", {
+                dateFormat: "Y-m-d",
+                // Permitir solo viernes o el penúltimo día del mes
+                enable: [
+                    function (date) {
+                        const dayOfWeek = date.getDay(); // 0: domingo, 1: lunes, ..., 5: viernes
+                        const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                        const penultimateDayOfMonth = new Date(lastDayOfMonth);
+                        penultimateDayOfMonth.setDate(lastDayOfMonth.getDate() - 1); // Penúltimo día del mes
+
+                        // Permitir solo viernes o el penúltimo día del mes
+                        return (dayOfWeek === 5 || date.getTime() === penultimateDayOfMonth.getTime());
+                    }
+                ],
+                onChange: function (selectedDates, dateStr, instance) {
+                    // Cuando se selecciona una fecha válida, calcular la fecha de pago
+                    if (selectedDates.length > 0) {
+                        const selectedDate = selectedDates[0];
+                        actualizarFechaPago(selectedDate);
+                    }
+                }
+            });
+        });
+
+        // Función para actualizar la fecha de pago 26 días después de la fecha de corte
+        function actualizarFechaPago(fechaCorte) {
+            const fechaPagoInput = document.getElementById('fechaPago');
+            const nuevaFechaPago = new Date(fechaCorte);
+
+            // Sumar 26 días a la fecha de corte
+            nuevaFechaPago.setDate(nuevaFechaPago.getDate() + 26);
+
+            // Formatear la fecha de pago
+            const fechaPagoFormatted = nuevaFechaPago.toLocaleDateString('es', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Actualizar el campo de fecha de pago
+            fechaPagoInput.value = fechaPagoFormatted;
+        }
+
+        // Actualizar automáticamente el mes de corte al elegir la fecha de transacción
+        function actualizarMesCorte() {
+            const fechaTransaccion = new Date(document.getElementById("fechaTransaccion").value);
+            const flatpickrInstance = document.querySelector("#fechaCorte")._flatpickr;
+
+            // Si se elige una fecha de transacción válida, actualizar el mes en fecha de corte
+            if (fechaTransaccion) {
+                flatpickrInstance.setDate(new Date(fechaTransaccion.getFullYear(), fechaTransaccion.getMonth(), 1));
+            }
+        }
+
+        // Función para calcular la simulación
+        function calcularSimulacion() {
+            // Obtener los valores del formulario
+            const tasaEA = parseFloat(document.getElementById("tasa").value); // Tasa efectiva anual
+            const numeroCuotas = parseInt(document.getElementById("cuotas").value);
+            const valorTransaccion = parseFloat(document.getElementById("valor").value);
+            const fechaTransaccion = new Date(document.getElementById("fechaTransaccion").value);
+            const fechaCorte = new Date(document.getElementById("fechaCorte").value);
+
+            // Convertir la tasa efectiva anual (E.A.) a tasa mensual (M.V.)
+            const tasaMensual = Math.pow((1 + tasaEA / 100), 1 / 12) - 1;
+
+            // Calcular días transcurridos entre la fecha de transacción y la fecha de corte, incluyendo el mismo día de la transacción
+            const diasHastaCorte = Math.floor((fechaCorte - fechaTransaccion) / (1000 * 60 * 60 * 24)) + 1; // Sumar 1 para incluir el día de transacción
+            const diasHastaPago = 25; // Sabemos que siempre serán 25 días entre la fecha de corte y la fecha de pago
+
+            let saldoInicial = valorTransaccion;
+            let saldoFinal = saldoInicial;
+            const abonoCapital = valorTransaccion / numeroCuotas; // Pago de capital constante en todas las cuotas
+
+            const tbody = document.querySelector("#resultado tbody");
+            tbody.innerHTML = ""; // Limpiar la tabla de resultados antes de empezar
+
+            // Calcular primera cuota
+            const interesesPrimerMes = ((saldoInicial * tasaMensual) / 30) * diasHastaCorte;
+            const cuotaTotal = abonoCapital + interesesPrimerMes;
+            saldoFinal = saldoInicial - abonoCapital;
+
+            let fechaPago = new Date(fechaCorte);
+            fechaPago.setDate(fechaPago.getDate() + 26); // Ajustamos a 26 días después de la fecha de corte
+
+            let row = `
+                <tr>
+                    <td>Cuota 1</td>
+                    <td>$${saldoInicial.toFixed(2)}</td>
+                    <td>$${interesesPrimerMes.toFixed(2)}</td>
+                    <td>$${cuotaTotal.toFixed(2)}</td>
+                    <td>$${saldoFinal.toFixed(2)}</td>
+                    <td>${fechaPago.toLocaleDateString()}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+
+            saldoInicial = saldoFinal;
+
+            // Calcular las cuotas restantes
+            for (let mes = 2; mes <= numeroCuotas; mes++) {
+                const interesesMes = saldoInicial * tasaMensual;
+                const interesesSobreCapital = ((abonoCapital * tasaMensual) / 30) * diasHastaPago;
+                const interesesTotales = interesesMes + interesesSobreCapital;
+                const cuotaMensual = abonoCapital + interesesTotales;
+
+                saldoFinal = saldoInicial - abonoCapital;
+                fechaPago.setMonth(fechaPago.getMonth() + 1);
+
+                row = `
+                    <tr>
+                        <td>Cuota ${mes}</td>
+                        <td>$${saldoInicial.toFixed(2)}</td>
+                        <td>$${interesesTotales.toFixed(2)}</td>
+                        <td>$${cuotaMensual.toFixed(2)}</td>
+                        <td>$${saldoFinal.toFixed(2)}</td>
+                        <td>${fechaPago.toLocaleDateString()}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+
+                saldoInicial = saldoFinal;
+            }
+        }
+    </script>
+</body>
+</html>
