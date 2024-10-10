@@ -103,6 +103,16 @@
         .description h2, .description p {
             color: #d9534f;
         }
+
+        .totals {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #fff;
+            background-color: #d9534f;
+            padding: 15px;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -119,7 +129,14 @@
             </div>
             <div class="form-group">
                 <label for="cuotas">Número de Cuotas (Máximo 60):</label>
-                <input type="number" id="cuotas" name="cuotas" max="60" placeholder="Ej: 10">
+                <select id="cuotas" name="cuotas" style="width: 100%; padding: 10px; margin-top: 5px; font-size: 1rem; border: 2px solid #d9534f; border-radius: 10px; box-sizing: border-box;">
+                    <option value="" disabled selected>Seleccione el número de cuotas</option>
+                    <script>
+                        for (let i = 1; i <= 60; i++) {
+                            document.write('<option value="' + i + '">' + i + '</option>');
+                        }
+                    </script>
+                </select>
             </div>
             <div class="form-group">
                 <label for="valor">Valor de la Transacción (Pesos):</label>
@@ -149,7 +166,7 @@
                     <th>Intereses</th>
                     <th>Cuota Total</th>
                     <th>Saldo Final</th>
-                    <th>Fecha de Pago</th>
+                    <th>Mes de Facturación</th>
                 </tr>
             </thead>
             <tbody>
@@ -157,31 +174,107 @@
             </tbody>
         </table>
 
+        <div class="totals" id="totals">
+            <!-- Totales se mostrarán aquí -->
+        </div>
+
         <div class="description">
             <h2>Simulador de Tarjeta de Crédito - Davivienda</h2>
             <h3>Objetivo</h3>
             <p>Este simulador fue creado para agilizar el proceso de simulación de intereses de tarjetas de crédito durante las consultas del Call Center de Davivienda. Permite a los asesores generar cálculos rápidos y precisos de cuotas e intereses, proporcionando una mejor experiencia al cliente.</p>
 
             <h3>Funcionamiento</h3>
-            <p>El simulador toma como base la tasa efectiva anual (E.A.), el número de cuotas, y el valor de la transacción para calcular los intereses que el cliente debe pagar en cada cuota. El sistema también gestiona las fechas clave como la fecha de transacción, la fecha de corte (solo permite seleccionar viernes o penúltimo día del mes) y la fecha de pago, que se genera automáticamente 25 días después de la fecha de corte. Los cálculos incluyen el reparto de intereses y el abono a capital, mostrando claramente el saldo y las cuotas mes a mes.</p>
+            <p>El simulador toma como base la tasa efectiva anual (E.A.), el número de cuotas, y el valor de la transacción para calcular los intereses que el cliente debe pagar en cada cuota. El sistema también gestiona las fechas clave como la fecha de transacción, la fecha de corte (solo permite seleccionar viernes o penúltimo día del mes) y la fecha de pago, que se genera automáticamente según los datos proporcionados. Los cálculos incluyen el reparto de intereses y el abono a capital, mostrando claramente el saldo y las cuotas mes a mes.</p>
 
             <p><strong>Desarrollado por Michael Martinez.</strong></p>
         </div>
     </div>
 
     <!-- Flatpickr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr">function validarNumeroCuotas() {
+    const cuotasInput = document.getElementById("cuotas");
+    if (cuotasInput.value < 1) {
+        cuotasInput.value = 1;
+    } else if (cuotasInput.value > 60) {
+        cuotasInput.value = 60;
+    }
+}
+
+// Añadir evento de validación al cargar la página
+document.getElementById("cuotas").addEventListener("input", validarNumeroCuotas); else if (cuotasInput.value > 60) {
+        cuotasInput.value = 60;
+    }
+}
+</script>
     <script>
-        // Función para calcular la Tasa M.V. a partir de la Tasa E.A. y redondearla a 2 decimales
-        function calcularTasaMV() {
-            const tasaEA = parseFloat(document.getElementById("tasa").value);
-            if (!isNaN(tasaEA)) {
-                const tasaMV = Math.pow((1 + tasaEA / 100), 1 / 12) - 1;
-                document.getElementById("tasaMV").value = (tasaMV * 100).toFixed(2) + ' %'; // Redondear a 2 decimales
-            } else {
-                document.getElementById("tasaMV").value = '';
-            }
-        }
+// Datos de fechas de corte y pago
+const fechasCortePago = {
+    "2023-12-01": "2023-12-21",
+    "2023-12-08": "2024-01-02",
+    "2023-12-15": "2024-01-04",
+    "2023-12-23": "2024-01-12",
+    "2023-12-30": "2024-01-24",
+    "2024-01-05": "2024-01-25",
+    "2024-01-12": "2024-02-05",
+    "2024-01-19": "2024-02-05",
+    "2024-01-26": "2024-02-15",
+    "2024-01-30": "2024-02-20",
+    "2024-02-02": "2024-02-25",
+    "2024-02-09": "2024-03-05",
+    "2024-02-16": "2024-03-05",
+    "2024-02-23": "2024-03-15",
+    "2024-02-27": "2024-03-20",
+    "2024-03-01": "2024-03-25",
+    "2024-03-08": "2024-04-05",
+    "2024-03-15": "2024-04-10",
+    "2024-03-22": "2024-04-15",
+    "2024-03-30": "2024-04-20",
+    "2024-04-05": "2024-04-25",
+    "2024-04-12": "2024-05-05",
+    "2024-04-19": "2024-05-10",
+    "2024-04-26": "2024-05-15",
+    "2024-04-29": "2024-05-20",
+    "2024-05-03": "2024-05-25",
+    "2024-05-10": "2024-06-05",
+    "2024-05-17": "2024-06-10",
+    "2024-05-24": "2024-06-15",
+    "2024-05-30": "2024-06-20",
+    "2024-06-07": "2024-06-25",
+    "2024-06-14": "2024-07-05",
+    "2024-06-21": "2024-07-10",
+    "2024-06-28": "2024-07-15",
+    "2024-06-29": "2024-07-20",
+    "2024-07-05": "2024-07-25",
+    "2024-07-12": "2024-08-05",
+    "2024-07-19": "2024-08-10",
+    "2024-07-26": "2024-08-15",
+    "2024-07-30": "2024-08-20",
+    "2024-08-02": "2024-08-25",
+    "2024-08-09": "2024-09-05",
+    "2024-08-16": "2024-09-10",
+    "2024-08-23": "2024-09-15",
+    "2024-08-30": "2024-09-20",
+    "2024-09-06": "2024-09-25",
+    "2024-09-13": "2024-10-05",
+    "2024-09-20": "2024-10-10",
+    "2024-09-27": "2024-10-15",
+    "2024-09-29": "2024-10-20",
+    "2024-10-04": "2024-10-25",
+    "2024-10-11": "2024-11-05",
+    "2024-10-18": "2024-11-10",
+    "2024-10-25": "2024-11-15",
+    "2024-10-30": "2024-11-20",
+    "2024-11-01": "2024-11-25",
+    "2024-11-08": "2024-12-05",
+    "2024-11-15": "2024-12-10",
+    "2024-11-22": "2024-12-15",
+    "2024-11-29": "2024-12-20",
+    "2024-12-06": "2024-12-25",
+    "2024-12-13": "2025-01-05",
+    "2024-12-20": "2025-01-10",
+    "2024-12-27": "2025-01-15",
+    "2024-12-30": "2025-01-20"
+};
 
         document.addEventListener('DOMContentLoaded', function () {
             flatpickr("#fechaCorte", {
@@ -199,32 +292,25 @@
                     }
                 ],
                 onChange: function (selectedDates, dateStr, instance) {
-                    // Cuando se selecciona una fecha válida, calcular la fecha de pago
-                    if (selectedDates.length > 0) {
-                        const selectedDate = selectedDates[0];
-                        actualizarFechaPago(selectedDate);
+                    // Cuando se selecciona una fecha válida, buscar la fecha de pago correspondiente
+                    if (fechasCortePago[dateStr]) {
+                        document.getElementById('fechaPago').value = fechasCortePago[dateStr];
+                    } else {
+                        document.getElementById('fechaPago').value = "";
                     }
                 }
             });
         });
 
-        // Función para actualizar la fecha de pago 26 días después de la fecha de corte
-        function actualizarFechaPago(fechaCorte) {
-            const fechaPagoInput = document.getElementById('fechaPago');
-            const nuevaFechaPago = new Date(fechaCorte);
-
-            // Sumar 26 días a la fecha de corte
-            nuevaFechaPago.setDate(nuevaFechaPago.getDate() + 26);
-
-            // Formatear la fecha de pago
-            const fechaPagoFormatted = nuevaFechaPago.toLocaleDateString('es', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-
-            // Actualizar el campo de fecha de pago
-            fechaPagoInput.value = fechaPagoFormatted;
+        // Función para calcular la Tasa M.V. a partir de la Tasa E.A. y redondearla a 2 decimales
+        function calcularTasaMV() {
+            const tasaEA = parseFloat(document.getElementById("tasa").value);
+            if (!isNaN(tasaEA)) {
+                const tasaMV = Math.pow((1 + tasaEA / 100), 1 / 12) - 1;
+                document.getElementById("tasaMV").value = (tasaMV * 100).toFixed(2) + ' %'; // Redondear a 2 decimales
+            } else {
+                document.getElementById("tasaMV").value = '';
+            }
         }
 
         // Actualizar automáticamente el mes de corte al elegir la fecha de transacción
@@ -261,10 +347,16 @@
             const tbody = document.querySelector("#resultado tbody");
             tbody.innerHTML = ""; // Limpiar la tabla de resultados antes de empezar
 
+            let totalIntereses = 0;
+            let totalCuotas = 0;
+
             // Calcular primera cuota
             const interesesPrimerMes = ((saldoInicial * tasaMensual) / 30) * diasHastaCorte;
             const cuotaTotal = abonoCapital + interesesPrimerMes;
             saldoFinal = saldoInicial - abonoCapital;
+
+            totalIntereses += interesesPrimerMes;
+            totalCuotas += cuotaTotal;
 
             let fechaPago = new Date(fechaCorte);
             fechaPago.setDate(fechaPago.getDate() + 26); // Ajustamos a 26 días después de la fecha de corte
@@ -276,7 +368,7 @@
                     <td>$${interesesPrimerMes.toFixed(2)}</td>
                     <td>$${cuotaTotal.toFixed(2)}</td>
                     <td>$${saldoFinal.toFixed(2)}</td>
-                    <td>${fechaPago.toLocaleDateString()}</td>
+                    <td>${fechaPago.toLocaleString('es', { month: 'long', year: 'numeric' })}</td>
                 </tr>
             `;
             tbody.innerHTML += row;
@@ -292,6 +384,9 @@
 
                 saldoFinal = saldoInicial - abonoCapital;
 
+                totalIntereses += interesesTotales;
+                totalCuotas += cuotaMensual;
+
                 // Calcular correctamente la fecha de pago para las cuotas siguientes
                 fechaPago = new Date(fechaPago);
                 fechaPago.setMonth(fechaPago.getMonth() + 1);
@@ -304,13 +399,20 @@
                         <td>$${interesesTotales.toFixed(2)}</td>
                         <td>$${cuotaMensual.toFixed(2)}</td>
                         <td>$${saldoFinal.toFixed(2)}</td>
-                        <td>${fechaPago.toLocaleDateString()}</td>
+                        <td>${fechaPago.toLocaleString('es', { month: 'long', year: 'numeric' })}</td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
 
                 saldoInicial = saldoFinal;
             }
+
+            // Mostrar los totales
+            const totalsDiv = document.getElementById("totals");
+            totalsDiv.innerHTML = `
+                <p>Total de intereses pagados: $${totalIntereses.toFixed(2)}</p>
+                <p>Total de la sumatoria de cuotas: $${totalCuotas.toFixed(2)}</p>
+            `;
         }
     </script>
 </body>
