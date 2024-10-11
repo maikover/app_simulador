@@ -155,7 +155,7 @@
             border-radius: 10px;
         }
 
-        .description h2, .description p {
+        .description h2, .description h3, .description p {
             color: #d9534f;
         }
 
@@ -220,14 +220,29 @@
         </div>
 
         <div class="description">
-            <h2>Simulador de Tarjeta de Crédito - Davivienda</h2>
-            <h3>Objetivo</h3>
-            <p>Este simulador fue creado para agilizar el proceso de simulación de intereses de tarjetas de crédito durante las consultas del Call Center de Davivienda. Permite a los asesores generar cálculos rápidos y precisos de cuotas e intereses, proporcionando una mejor experiencia al cliente.</p>
+            <h2>Instrucciones y Conceptos Básicos</h2>
+            
+            <h3>Cómo Usar el Simulador</h3>
+            <ol>
+                <li><strong>Tasa E.A. (%):</strong> Ingresa la Tasa Efectiva Anual de tu tarjeta de crédito.</li>
+                <li><strong>Número de Cuotas:</strong> Añade la cantidad de cuotas que deseas simular (máximo 60). Escribe un número y presiona <strong>Enter</strong> para agregarlo.</li>
+                <li><strong>Valor de la Transacción (Pesos):</strong> Introduce el monto total de la transacción que deseas financiar.</li>
+                <li><strong>Fecha de Transacción:</strong> Selecciona la fecha en que se realiza la transacción.</li>
+                <li><strong>Fecha de Corte:</strong> Elige una fecha de corte que sea un viernes o el penúltimo día del mes.</li>
+                <li><strong>Próxima Fecha de Pago:</strong> Se calculará automáticamente según la fecha de corte seleccionada.</li>
+                <li>Una vez completados todos los campos, haz clic en el botón <strong>Simular</strong> para generar las cuotas.</li>
+            </ol>
 
-            <h3>Funcionamiento</h3>
-            <p>El simulador toma como base la tasa efectiva anual (E.A.), el número de cuotas, y el valor de la transacción para calcular los intereses que el cliente debe pagar en cada cuota. El sistema también gestiona las fechas clave como la fecha de transacción, la fecha de corte (solo permite seleccionar viernes o penúltimo día del mes) y la fecha de pago, que se genera automáticamente según los datos proporcionados. Los cálculos incluyen el reparto de intereses y el abono a capital, mostrando claramente el saldo y las cuotas mes a mes.</p>
-
-            <p><strong>Desarrollado por Michael Martinez.</strong></p>
+            <h3>Conceptos Básicos</h3>
+            <ul>
+                <li><strong>Tasa E.A. (Tasa Efectiva Anual):</strong> Es el interés anual que se aplica a la deuda de la tarjeta de crédito.</li>
+                <li><strong>Tasa M.V. (Mensual Vencido):</strong> Es la tasa de interés mensual derivada de la Tasa E.A.</li>
+                <li><strong>Abono Capital:</strong> Es la parte de la cuota que se destina a reducir el saldo principal de la deuda.</li>
+                <li><strong>Intereses:</strong> Es la parte de la cuota que corresponde al costo del dinero prestado, calculado sobre el saldo pendiente.</li>
+                <li><strong>Cuota Total:</strong> Es la suma del Abono Capital y los Intereses en cada período.</li>
+                <li><strong>Saldo Inicial:</strong> Es el monto pendiente de pago al inicio de cada período.</li>
+                <li><strong>Saldo Final:</strong> Es el monto pendiente de pago al finalizar cada período después de aplicar el Abono Capital.</li>
+            </ul>
         </div>
     </div>
 
@@ -318,7 +333,7 @@
                         penultimateDayOfMonth.setDate(lastDayOfMonth.getDate() - 1); // Penúltimo día del mes
 
                         // Permitir solo viernes o el penúltimo día del mes
-                        return (dayOfWeek === 5 || date.getTime() === penultimateDayOfMonth.getTime());
+                        return (dayOfWeek === 5 || date.toDateString() === penultimateDayOfMonth.toDateString());
                     }
                 ],
                 onChange: function (selectedDates, dateStr, instance) {
@@ -331,8 +346,8 @@
                 }
             });
 
-            // Inicializar Flatpickr para el campo fechaCorte
-            // Ya se ha inicializado arriba
+            // Enfocar el input de cuotas al cargar la página si se desea
+            // document.getElementById("cuotas-input").focus();
         });
 
         // Función para calcular la Tasa M.V. a partir de la Tasa E.A. y redondearla a 2 decimales
@@ -348,12 +363,17 @@
 
         // Actualizar automáticamente el mes de corte al elegir la fecha de transacción
         function actualizarMesCorte() {
-            const fechaTransaccion = new Date(document.getElementById("fechaTransaccion").value);
+            const fechaTransaccionValue = document.getElementById("fechaTransaccion").value;
+            if (!fechaTransaccionValue) {
+                return;
+            }
+            const fechaTransaccion = new Date(fechaTransaccionValue);
             const flatpickrInstance = document.querySelector("#fechaCorte")._flatpickr;
 
-            // Si se elige una fecha de transacción válida, actualizar el mes en fecha de corte
+            // Si se elige una fecha de transacción válida, actualizar el mes en fecha de corte al primer día del mes
             if (fechaTransaccion) {
-                flatpickrInstance.setDate(new Date(fechaTransaccion.getFullYear(), fechaTransaccion.getMonth(), 1));
+                const primerDiaMes = new Date(fechaTransaccion.getFullYear(), fechaTransaccion.getMonth(), 1);
+                flatpickrInstance.setDate(primerDiaMes, true);
             }
         }
 
@@ -409,6 +429,24 @@
             document.getElementById("cuotas-input").focus();
         }
 
+        // Función para formatear números según notación española y añadir el símbolo $
+        function formatearNumero(numero) {
+            return '$' + numero.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Función para obtener la abreviatura del mes en español sin punto
+        function obtenerMesAbreviado(date) {
+            const opciones = { month: 'short' };
+            let mes = date.toLocaleString('es-ES', opciones);
+            // Eliminar el punto si existe (e.g., "nov." -> "nov")
+            if (mes.endsWith('.')) {
+                mes = mes.slice(0, -1);
+            }
+            // Capitalizar la primera letra
+            mes = mes.charAt(0).toUpperCase() + mes.slice(1);
+            return mes;
+        }
+
         // Función para calcular la simulación
         function calcularSimulacion() {
             // Obtener los valores del formulario
@@ -450,10 +488,10 @@
                         <tr>
                             <th>Período</th>
                             <th>Saldo Inicial</th>
+                            <th>Abono Capital</th>
                             <th>Intereses</th>
-                            <th>Cuota Total</th>
+                            <th>Cuota</th>
                             <th>Saldo Final</th>
-                            <th>Mes de Facturación</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -494,17 +532,22 @@
                 totalIntereses += interesesPrimerMes;
                 totalCuotas += cuotaTotal;
 
-                let fechaPago = new Date(fechaCorte);
-                fechaPago.setDate(fechaPago.getDate() + 26); // Ajustamos a 26 días después de la fecha de corte
+                let fechaPagoSimulacion = new Date(fechaCorte);
+                fechaPagoSimulacion.setDate(fechaPagoSimulacion.getDate() + 26); // Ajustamos a 26 días después de la fecha de corte
+
+                // Obtener mes abreviado y año para la cuota 1
+                const mesAbreviado = obtenerMesAbreviado(fechaPagoSimulacion);
+                const año = fechaPagoSimulacion.getFullYear();
+                const periodo = `Cuota 1 ${mesAbreviado} ${año}`;
 
                 let row = `
                     <tr>
-                        <td>Cuota 1</td>
-                        <td>$${saldoInicial.toFixed(2)}</td>
-                        <td>$${interesesPrimerMes.toFixed(2)}</td>
-                        <td>$${cuotaTotal.toFixed(2)}</td>
-                        <td>$${saldoFinal.toFixed(2)}</td>
-                        <td>${fechaPago.toLocaleString('es', { month: 'long', year: 'numeric' })}</td>
+                        <td>${periodo}</td>
+                        <td>${formatearNumero(saldoInicial)}</td>
+                        <td>${formatearNumero(abonoCapital)}</td>
+                        <td>${formatearNumero(interesesPrimerMes)}</td>
+                        <td>${formatearNumero(cuotaTotal)}</td>
+                        <td>${formatearNumero(saldoFinal)}</td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
@@ -524,18 +567,23 @@
                     totalCuotas += cuotaMensual;
 
                     // Calcular correctamente la fecha de pago para las cuotas siguientes
-                    fechaPago = new Date(fechaPago);
-                    fechaPago.setMonth(fechaPago.getMonth() + 1);
-                    fechaPago.setDate(fechaPago.getDate() + 1); // Ajuste para evitar el desfase
+                    fechaPagoSimulacion = new Date(fechaPagoSimulacion);
+                    fechaPagoSimulacion.setMonth(fechaPagoSimulacion.getMonth() + 1);
+                    fechaPagoSimulacion.setDate(fechaPagoSimulacion.getDate() + 1); // Ajuste para evitar el desfase
+
+                    // Obtener mes abreviado y año para la cuota actual
+                    const mesAbreviadoActual = obtenerMesAbreviado(fechaPagoSimulacion);
+                    const añoActual = fechaPagoSimulacion.getFullYear();
+                    const periodoActual = `Cuota ${mes} ${mesAbreviadoActual} ${añoActual}`;
 
                     row = `
                         <tr>
-                            <td>Cuota ${mes}</td>
-                            <td>$${saldoInicial.toFixed(2)}</td>
-                            <td>$${interesesTotales.toFixed(2)}</td>
-                            <td>$${cuotaMensual.toFixed(2)}</td>
-                            <td>$${saldoFinal.toFixed(2)}</td>
-                            <td>${fechaPago.toLocaleString('es', { month: 'long', year: 'numeric' })}</td>
+                            <td>${periodoActual}</td>
+                            <td>${formatearNumero(saldoInicial)}</td>
+                            <td>${formatearNumero(abonoCapital)}</td>
+                            <td>${formatearNumero(interesesTotales)}</td>
+                            <td>${formatearNumero(cuotaMensual)}</td>
+                            <td>${formatearNumero(saldoFinal)}</td>
                         </tr>
                     `;
                     tbody.innerHTML += row;
@@ -545,8 +593,8 @@
 
                 // Mostrar los totales
                 totalsDiv.innerHTML = `
-                    <p>Total de intereses pagados: $${totalIntereses.toFixed(2)}</p>
-                    <p>Total de la sumatoria de cuotas: $${totalCuotas.toFixed(2)}</p>
+                    <p>Total de intereses pagados: ${formatearNumero(totalIntereses)}</p>
+                    <p>Total de la sumatoria de cuotas: ${formatearNumero(totalCuotas)}</p>
                 `;
             });
         }
