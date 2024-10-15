@@ -329,11 +329,11 @@
                     function (date) {
                         const dayOfWeek = date.getDay(); // 0: domingo, 1: lunes, ..., 5: viernes
                         const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                        const penultimateDayOfMonth = new Date(lastDayOfMonth);
-                        penultimateDayOfMonth.setDate(lastDayOfMonth.getDate() - 1); // Penúltimo día del mes
+                        const penúltimoDíaMes = new Date(lastDayOfMonth);
+                        penúltimoDíaMes.setDate(lastDayOfMonth.getDate() - 1); // Penúltimo día del mes
 
                         // Permitir solo viernes o el penúltimo día del mes
-                        return (dayOfWeek === 5 || date.toDateString() === penultimateDayOfMonth.toDateString());
+                        return (dayOfWeek === 5 || date.toDateString() === penúltimoDíaMes.toDateString());
                     }
                 ],
                 onChange: function (selectedDates, dateStr, instance) {
@@ -556,8 +556,11 @@
 
                 // Calcular las cuotas restantes
                 for (let mes = 2; mes <= numeroCuotas; mes++) {
+                    // Ajuste: restar un día en el cálculo de intereses para el mes 2 y siguientes
+                    const diasInteres = diasHastaPago - 2; // Restar 1 día
+
                     const interesesMes = saldoInicial * tasaMensual;
-                    const interesesSobreCapital = ((abonoCapital * tasaMensual) / 30) * diasHastaPago;
+                    const interesesSobreCapital = ((abonoCapital * tasaMensual) / 30) * diasInteres;
                     const interesesTotales = interesesMes + interesesSobreCapital;
                     const cuotaMensual = abonoCapital + interesesTotales;
 
