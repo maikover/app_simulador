@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -322,18 +322,18 @@
         let cuotasArray = [];
 
         document.addEventListener('DOMContentLoaded', function () {
-            flatpickr("#fechaCorte", {
+            const fechaCortePicker = flatpickr("#fechaCorte", {
                 dateFormat: "Y-m-d",
                 // Permitir solo viernes o el penúltimo día del mes
                 enable: [
                     function (date) {
                         const dayOfWeek = date.getDay(); // 0: domingo, 1: lunes, ..., 5: viernes
                         const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                        const penúltimoDíaMes = new Date(lastDayOfMonth);
-                        penúltimoDíaMes.setDate(lastDayOfMonth.getDate() - 1); // Penúltimo día del mes
+                        const penultimoDiaMes = new Date(lastDayOfMonth);
+                        penultimoDiaMes.setDate(lastDayOfMonth.getDate() - 1); // Penúltimo día del mes
 
                         // Permitir solo viernes o el penúltimo día del mes
-                        return (dayOfWeek === 5 || date.toDateString() === penúltimoDíaMes.toDateString());
+                        return (dayOfWeek === 5 || date.toDateString() === penultimoDiaMes.toDateString());
                     }
                 ],
                 onChange: function (selectedDates, dateStr, instance) {
@@ -346,8 +346,8 @@
                 }
             });
 
-            // Enfocar el input de cuotas al cargar la página si se desea
-            // document.getElementById("cuotas-input").focus();
+            // Guardar la instancia de Flatpickr para manipulación posterior
+            document.querySelector("#fechaCorte")._flatpickr = fechaCortePicker;
         });
 
         // Función para calcular la Tasa M.V. a partir de la Tasa E.A. y redondearla a 2 decimales
@@ -370,11 +370,51 @@
             const fechaTransaccion = new Date(fechaTransaccionValue);
             const flatpickrInstance = document.querySelector("#fechaCorte")._flatpickr;
 
-            // Si se elige una fecha de transacción válida, actualizar el mes en fecha de corte al primer día del mes
-            if (fechaTransaccion) {
-                const primerDiaMes = new Date(fechaTransaccion.getFullYear(), fechaTransaccion.getMonth(), 1);
-                flatpickrInstance.setDate(primerDiaMes, true);
+            // Establecer minDate en Fecha de Corte igual a Fecha de Transaccion
+            flatpickrInstance.set('minDate', fechaTransaccion);
+
+            // Encontrar el tercer viernes del mes de la fecha de transacción
+            let tercerViernes = encontrarTercerViernes(fechaTransaccion.getFullYear(), fechaTransaccion.getMonth());
+
+            // Verificar si el tercer viernes es antes de la Fecha de Transaccion
+            if (tercerViernes) {
+                const fechaCorteTemp = new Date(tercerViernes);
+                if (fechaCorteTemp < fechaTransaccion) {
+                    // Si es anterior, buscar el tercer viernes del siguiente mes
+                    const siguienteMes = fechaTransaccion.getMonth() + 1;
+                    const siguienteAnio = siguienteMes > 11 ? fechaTransaccion.getFullYear() + 1 : fechaTransaccion.getFullYear();
+                    const mes = siguienteMes > 11 ? 0 : siguienteMes;
+                    tercerViernes = encontrarTercerViernes(siguienteAnio, mes);
+                }
+                if (tercerViernes) {
+                    flatpickrInstance.setDate(tercerViernes, true);
+                    console.log(`Tercer viernes encontrado: ${tercerViernes}`);
+                } else {
+                    console.log("No se encontró un tercer viernes en este mes.");
+                }
+            } else {
+                console.log("No se encontró un tercer viernes en este mes.");
             }
+        }
+
+        // Función para encontrar el tercer viernes de un mes
+        function encontrarTercerViernes(year, month) {
+            let count = 0;
+            for (let day = 1; day <= 31; day++) {
+                const date = new Date(year, month, day);
+                if (date.getMonth() !== month) break; // Evitar pasar al siguiente mes
+                if (date.getDay() === 5) { // 5 corresponde a viernes
+                    count++;
+                    if (count === 3) {
+                        // Formatear la fecha como YYYY-MM-DD
+                        const yyyy = date.getFullYear();
+                        const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        const dd = String(date.getDate()).padStart(2, '0');
+                        return `${yyyy}-${mm}-${dd}`;
+                    }
+                }
+            }
+            return null; // No hay tercer viernes en el mes
         }
 
         // Función para manejar la entrada de cuotas
@@ -447,18 +487,58 @@
             return mes;
         }
 
+        // Función para verificar si una fecha es el tercer viernes del mes
+        function esTercerViernes(date) {
+            if (date.getDay() !== 5) return false; // 5 corresponde a viernes
+            const day = date.getDate();
+            let fridayCount = 0;
+            for (let d = 1; d <= day; d++) {
+                let currentDate = new Date(date.getFullYear(), date.getMonth(), d);
+                if (currentDate.getDay() === 5) fridayCount++;
+            }
+            console.log(`Es el tercer viernes? ${fridayCount === 3}`);
+            return fridayCount === 3;
+        }
+
         // Función para calcular la simulación
         function calcularSimulacion() {
             // Obtener los valores del formulario
             const tasaEA = parseFloat(document.getElementById("tasa").value); // Tasa efectiva anual
             const valorTransaccion = parseFloat(document.getElementById("valor").value);
-            const fechaTransaccion = new Date(document.getElementById("fechaTransaccion").value);
-            const fechaCorte = new Date(document.getElementById("fechaCorte").value);
+            const fechaTransaccionStr = document.getElementById("fechaTransaccion").value;
+            const fechaCorteStr = document.getElementById("fechaCorte").value;
 
             // Validaciones básicas
-            if (isNaN(tasaEA) || isNaN(valorTransaccion) || isNaN(fechaTransaccion.getTime()) || isNaN(fechaCorte.getTime())) {
+            if (isNaN(tasaEA) || isNaN(valorTransaccion) || !fechaTransaccionStr || !fechaCorteStr) {
                 alert("Por favor, completa todos los campos requeridos correctamente.");
                 return;
+            }
+
+            // Parsear las fechas de manera robusta
+            const [transYear, transMonth, transDay] = fechaTransaccionStr.split('-').map(Number);
+            const fechaTransaccion = new Date(transYear, transMonth - 1, transDay);
+
+            const [corteYear, corteMonth, corteDay] = fechaCorteStr.split('-').map(Number);
+            const fechaCorte = new Date(corteYear, corteMonth - 1, corteDay);
+
+            if (isNaN(fechaTransaccion.getTime()) || isNaN(fechaCorte.getTime())) {
+                alert("Por favor, ingresa fechas válidas.");
+                return;
+            }
+
+            // **Nueva Lógica: Agregar cuota automáticamente si solo hay una cuota ingresada sin presionar Enter**
+            const cuotasInputValue = document.getElementById("cuotas-input").value.trim();
+            if (cuotasArray.length === 0 && cuotasInputValue !== '') {
+                const value = parseInt(cuotasInputValue);
+                if (!isNaN(value) && value >= 1 && value <= 60) {
+                    cuotasArray.push(value);
+                    addCuotaTag(value);
+                    // Limpiar el input después de agregar
+                    document.getElementById("cuotas-input").value = '';
+                } else {
+                    alert("Por favor, ingresa un número válido de cuotas (1-60).");
+                    return;
+                }
             }
 
             if (cuotasArray.length === 0) {
@@ -469,6 +549,14 @@
             // Limpiar resultados anteriores
             const resultadosDiv = document.getElementById("resultados");
             resultadosDiv.innerHTML = "";
+
+            // Verificar si la fecha de corte es el tercer viernes
+            const esTercer = esTercerViernes(fechaCorte);
+            console.log(`Fecha de Corte: ${fechaCorteStr}, ¿Es tercer viernes? ${esTercer}`);
+
+            // Verificar si el mes es diciembre
+            const esDiciembre = fechaCorte.getMonth() === 11; // Diciembre es 11 (0-based)
+            console.log(`¿Es diciembre? ${esDiciembre}`);
 
             // Iterar sobre cada cuota ingresada
             cuotasArray.forEach(numeroCuotas => {
@@ -532,7 +620,7 @@
                 totalIntereses += interesesPrimerMes;
                 totalCuotas += cuotaTotal;
 
-                let fechaPagoSimulacion = new Date(fechaCorte);
+                let fechaPagoSimulacion = new Date(corteYear, corteMonth - 1, corteDay);
                 fechaPagoSimulacion.setDate(fechaPagoSimulacion.getDate() + 26); // Ajustamos a 26 días después de la fecha de corte
 
                 // Obtener mes abreviado y año para la cuota 1
@@ -556,8 +644,16 @@
 
                 // Calcular las cuotas restantes
                 for (let mes = 2; mes <= numeroCuotas; mes++) {
-                    // Ajuste: restar un día en el cálculo de intereses para el mes 2 y siguientes
-                    const diasInteres = diasHastaPago - 2; // Restar 1 día
+                    // Ajuste: restar 2 o 4 días según si es tercer viernes o no
+                    let diasInteres = esTercer ? diasHastaPago - 2 : diasHastaPago - 4; // 23 o 21 días
+
+                    // **Nueva Lógica: Si es el tercer viernes de diciembre, restar 2 días adicionales a partir de la segunda cuota**
+                    if (esTercer && esDiciembre) {
+                        diasInteres -= 2;
+                        console.log(`Es el tercer viernes de diciembre, días de interés ajustados a ${diasInteres}`);
+                    }
+
+                    console.log(`Cuota ${mes}: días de interés ajustados a ${diasInteres}`);
 
                     const interesesMes = saldoInicial * tasaMensual;
                     const interesesSobreCapital = ((abonoCapital * tasaMensual) / 30) * diasInteres;
@@ -572,7 +668,13 @@
                     // Calcular correctamente la fecha de pago para las cuotas siguientes
                     fechaPagoSimulacion = new Date(fechaPagoSimulacion);
                     fechaPagoSimulacion.setMonth(fechaPagoSimulacion.getMonth() + 1);
-                    fechaPagoSimulacion.setDate(fechaPagoSimulacion.getDate() + 1); // Ajuste para evitar el desfase
+
+                    // Verificar si el mes ha cambiado correctamente (evitar desbordes)
+                    const expectedMonth = (corteMonth - 1 + mes) % 12;
+                    if (fechaPagoSimulacion.getMonth() !== expectedMonth) {
+                        // Si el mes no coincide, ajustar al último día del mes
+                        fechaPagoSimulacion = new Date(fechaPagoSimulacion.getFullYear(), fechaPagoSimulacion.getMonth() + 1, 0);
+                    }
 
                     // Obtener mes abreviado y año para la cuota actual
                     const mesAbreviadoActual = obtenerMesAbreviado(fechaPagoSimulacion);
