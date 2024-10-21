@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>  
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -500,6 +500,34 @@
             return fridayCount === 3;
         }
 
+        // Función para verificar si una fecha es el penúltimo día del mes
+        function esPenultimoDia(fecha) {
+            const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
+            const penultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, ultimoDia.getDate() - 1);
+            return fecha.toDateString() === penultimoDia.toDateString();
+        }
+
+        // Función para obtener el aumento de días específico para fechas en noviembre y diciembre
+        function obtenerAumentoDias(fechaCorte) {
+            const aumentos = {
+                // Noviembre 2024
+                "2024-11-01": 3, // Primer viernes
+                "2024-11-08": 6, // Segundo viernes
+                "2024-11-15": 2, // Tercer viernes
+                // "2024-11-22": 0, // Cuarto viernes, no necesita aumento
+
+                // Diciembre 2024
+                "2024-12-06": -2, // Primer viernes
+                "2024-12-13": 2  // Segundo viernes
+                // "2024-12-20": 0, // Tercer viernes, no necesita aumento
+                // "2024-12-27": 0, // Cuarto viernes, no necesita aumento
+                // "2024-12-30": 0  // Quinto viernes, no necesita aumento
+            };
+
+            const fechaStr = fechaCorte.toISOString().split('T')[0];
+            return aumentos[fechaStr] || 0;
+        }
+
         // Función para calcular la simulación
         function calcularSimulacion() {
             // Obtener los valores del formulario
@@ -557,6 +585,15 @@
             // Verificar si el mes es diciembre
             const esDiciembre = fechaCorte.getMonth() === 11; // Diciembre es 11 (0-based)
             console.log(`¿Es diciembre? ${esDiciembre}`);
+
+            // Verificar si la fecha de corte está en noviembre y no es el penúltimo día
+            const esNoviembre = fechaCorte.getMonth() === 10; // Noviembre es 10 (0-based)
+            const penultimoDia = esPenultimoDia(fechaCorte);
+            console.log(`¿Es noviembre? ${esNoviembre}, ¿Es penúltimo día? ${penultimoDia}`);
+
+            // Obtener aumento de días específico para fechas en noviembre y diciembre
+            const aumentoDias = obtenerAumentoDias(fechaCorte);
+            console.log(`Aumento de días para la fecha de corte: ${aumentoDias}`);
 
             // Iterar sobre cada cuota ingresada
             cuotasArray.forEach(numeroCuotas => {
@@ -651,6 +688,12 @@
                     if (esTercer && esDiciembre) {
                         diasInteres -= 2;
                         console.log(`Es el tercer viernes de diciembre, días de interés ajustados a ${diasInteres}`);
+                    }
+
+                    // **Nueva Lógica: Aplicar aumento de días específico para fechas en noviembre y diciembre**
+                    if (!esPenultimoDia(fechaCorte)) {
+                        diasInteres += aumentoDias;
+                        console.log(`Fecha de Corte: ${fechaCorteStr}, Aumento de días aplicado: ${aumentoDias}, días de interés ajustados a ${diasInteres}`);
                     }
 
                     console.log(`Cuota ${mes}: días de interés ajustados a ${diasInteres}`);
