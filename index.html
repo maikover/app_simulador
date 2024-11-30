@@ -46,9 +46,9 @@
         }
 
         .form-group-50 {
-            flex: 1 1 48%;
+            flex: 1 1 50%;
             margin-bottom: 20px;
-            width: 48%;
+            width: 48%; /* Asegurar que el contenedor ocupe el mismo ancho que los demás campos */
         }
 
         label {
@@ -205,6 +205,11 @@
         @media (max-width: 768px) {
             .form-group, .form-group-50 {
                 flex: 1 1 100%;
+                width: 100%;
+            }
+
+            .container {
+                width: 90%;
             }
         }
     </style>
@@ -231,11 +236,11 @@
                 <label for="valor">Valor de la Transacción:</label>
                 <input type="number" id="valor" name="valor" placeholder="Ej: 50000">
             </div>
-            <div class="form-group">
+            <div class="form-group-50" style="flex: 1 1 50%;">
                 <label for="fechaTransaccion">Fecha de Transacción:</label>
                 <input type="date" id="fechaTransaccion" name="fechaTransaccion" onchange="actualizarMesCorte()">
             </div>
-            <div class="form-group">
+            <div class="form-group-50" style="flex: 1 1 50%;">
                 <label for="fechaCorte">Fecha de Corte:</label>
                 <input type="text" id="fechaCorte" name="fechaCorte" readonly>
             </div>
