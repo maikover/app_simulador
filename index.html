@@ -18,13 +18,12 @@
         }
 
         .container {
-            width: 85%;
-            max-width: 1200px; /* Ancho máximo para pantallas grandes */
+            width: 80%;
             margin: 0 auto;
             background-color: white;
-            padding: 15px;
+            padding: 20px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            margin-top: 15px;
+            margin-top: 30px;
             border-radius: 10px;
         }
 
@@ -36,25 +35,30 @@
         form {
             display: flex;
             flex-wrap: wrap;
-            gap: 2px; /* Maneja los espacios entre los campos */
+            justify-content: space-between;
             margin-bottom: 20px;
         }
 
         .form-group,
         .form-group-50 {
             flex: 1 1 48%;
-            margin-bottom: 5px; /* Reducido de 15px a 10px */
+            margin-bottom: 15px; /* Reducir margen inferior para más consistencia */
             box-sizing: border-box;
         }
 
-        /* Eliminado padding-right ya que usamos gap */
+        /* Añadir espacio pequeño entre los campos */
+        .form-group:not(:last-child),
+        .form-group-50:not(:last-child) {
+            padding-right: 10px;
+        }
 
         @media (max-width: 768px) {
-            .form-group {
+            .form-group,
+            .form-group-50 {
                 flex: 1 1 100%;
                 width: 100%;
+                padding-right: 0; /* Quitar padding en móviles */
             }
-            /* .form-group-50 permanece en 48% para mantener la distribución 50-50 */
         }
 
         label {
@@ -137,16 +141,18 @@
             gap: 10px;
         }
 
+        .button-container button {
+            flex: 1;
+        }
+
         .button-container button.limpiar {
             background-color: #f8d7da; /* Rojo claro */
             color: #d9534f; /* Rojo */
-            flex: 0 0 20%; /* 20% ancho */
         }
 
         .button-container button.simular {
             background-color: #d9534f; /* Rojo */
             color: white;
-            flex: 0 0 79%; /* 80% ancho */
         }
 
         .simulation-container {
@@ -834,26 +840,27 @@
                     <p>Total de intereses pagados: ${formatearNumero(totalIntereses)}</p>
                     <p>Total de la sumatoria de cuotas: ${formatearNumero(totalCuotas)}</p>
                 `;
-            }
+            });
+        }
 
-            // Función para limpiar el formulario
-            function limpiarFormulario() {
-                document.getElementById("tasa").value = '';
-                document.getElementById("tasaMV").value = '';
-                document.getElementById("cuotas-input").value = '';
-                document.getElementById("valor").value = '';
-                document.getElementById("fechaTransaccion").value = '';
-                document.getElementById("fechaCorte").value = '';
-                document.getElementById("fechaPago").value = '';
-                cuotasArray = [];
-                document.getElementById("cuotas-container").innerHTML = `
-                    <input type="number" id="cuotas-input" name="cuotas" placeholder="Escribe un número y presiona Enter" onkeydown="handleCuotasInput(event)">
-                    <span id="add-cuota" class="add-cuota" onclick="handleCuotasInput(event)">
-                        <i class="fas fa-plus"></i>
-                    </span>
-                `;
-                document.getElementById("resultados").innerHTML = '';
-            }
+        // Función para limpiar el formulario
+        function limpiarFormulario() {
+            document.getElementById("tasa").value = '';
+            document.getElementById("tasaMV").value = '';
+            document.getElementById("cuotas-input").value = '';
+            document.getElementById("valor").value = '';
+            document.getElementById("fechaTransaccion").value = '';
+            document.getElementById("fechaCorte").value = '';
+            document.getElementById("fechaPago").value = '';
+            cuotasArray = [];
+            document.getElementById("cuotas-container").innerHTML = `
+                <input type="number" id="cuotas-input" name="cuotas" placeholder="Escribe un número y presiona Enter" onkeydown="handleCuotasInput(event)">
+                <span id="add-cuota" class="add-cuota" onclick="handleCuotasInput(event)">
+                    <i class="fas fa-plus"></i>
+                </span>
+            `;
+            document.getElementById("resultados").innerHTML = '';
+        }
     </script>
 </body>
 </html>
