@@ -53,6 +53,10 @@
         }
 
         @media (max-width: 768px) {
+            .container {
+                width: 95%; /* Ajustar el ancho para pantallas pequeñas */
+            }
+
             .form-group,
             .form-group-50 {
                 flex: 1 1 100%;
@@ -165,10 +169,16 @@
             margin-bottom: 40px;
         }
 
+        /* Estilos para hacer que la tabla sea desplazable horizontalmente */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            min-width: 600px; /* Asegurar un ancho mínimo de la tabla */
         }
 
         table th, table td {
@@ -225,6 +235,59 @@
         }
 
         .add-cuota.active {
+            color: #c9302c;
+        }
+
+        /* Estilos para el modal de ampliación */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 1200px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .eye-icon {
+            cursor: pointer;
+            margin-left: 10px;
+            color: #d9534f;
+            transition: color 0.3s ease;
+        }
+
+        .eye-icon:hover {
             color: #c9302c;
         }
     </style>
@@ -700,7 +763,21 @@
                 // Crear título para la simulación
                 const titulo = document.createElement("h3");
                 titulo.textContent = `Simulación para ${numeroCuotas} Cuotas`;
+
+                // Crear el icono de ojo
+                const eyeIcon = document.createElement("span");
+                eyeIcon.classList.add("eye-icon");
+                eyeIcon.innerHTML = '<i class="fas fa-eye"></i>';
+                eyeIcon.onclick = function () {
+                    mostrarModal(tableResponsiveDiv.innerHTML);
+                };
+
+                titulo.appendChild(eyeIcon);
                 simulationDiv.appendChild(titulo);
+
+                // **Envolver la tabla en un contenedor con clase "table-responsive"**
+                const tableResponsiveDiv = document.createElement("div");
+                tableResponsiveDiv.classList.add("table-responsive");
 
                 // Crear tabla de resultados
                 const table = document.createElement("table");
@@ -719,7 +796,11 @@
                         <!-- Resultados se llenarán aquí -->
                     </tbody>
                 `;
-                simulationDiv.appendChild(table);
+                // Agregar la tabla dentro del div "table-responsive"
+                tableResponsiveDiv.appendChild(table);
+
+                // Agregar el contenedor "table-responsive" a la simulación
+                simulationDiv.appendChild(tableResponsiveDiv);
 
                 // Crear div para totales
                 const totalsDiv = document.createElement("div");
@@ -841,6 +922,39 @@
                     <p>Total de la sumatoria de cuotas: ${formatearNumero(totalCuotas)}</p>
                 `;
             });
+        }
+
+        // Función para mostrar el modal con la tabla ampliada
+        function mostrarModal(tableHTML) {
+            const modal = document.createElement("div");
+            modal.classList.add("modal");
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="table-responsive">${tableHTML}</div>
+                </div>
+            `;
+
+            // Agregar el modal al body
+            document.body.appendChild(modal);
+
+            // Mostrar el modal
+            modal.style.display = "block";
+
+            // Cerrar el modal al hacer clic en el botón de cierre
+            const closeBtn = modal.querySelector(".close");
+            closeBtn.onclick = function () {
+                modal.style.display = "none";
+                document.body.removeChild(modal);
+            };
+
+            // Cerrar el modal al hacer clic fuera de él
+            window.onclick = function (event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                    document.body.removeChild(modal);
+                }
+            };
         }
 
         // Función para limpiar el formulario
